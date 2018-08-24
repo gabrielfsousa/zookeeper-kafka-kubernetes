@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zoo
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  serviceName: "zoo"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+      annotations:
+    spec:
+      affinity:
+        #see kafka yaml for explanation
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - zookeeper
+            topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-0
+                - node-1
+                - node-2
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-0
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-1
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-2
+      terminationGracePeriodSeconds: 10
+      initContainers:
+      containers:
+      - name: zookeeper
+        image: your.registry.com:5000/alpine-zookeeper:1.0
+        imagePullPolicy: Always
+        env:
+        - name: SERVER_JVMFLAGS
+          value: "-Xmx4096M -Xms4096M -javaagent:/opt/jmx_prometheus_javaagent-0.3.1.jar=7072:/opt/zoo-jmx.yaml"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - "/bin/sh"
+                - "-ec"
+                - |
+                  export ZOO_MY_ID=$((${HOSTNAME##*-} + 1))
+                  echo "${ZOO_MY_ID:-1}" | tee /data/myid
+        ports:
+        - containerPort: 2181
+          name: client
+        - containerPort: 2888
+          name: peer
+        - containerPort: 3888
+          name: leader-election
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - '[ "imok" == "$(echo ruok | nc -w 1 127.0.0.1 2181)" ]'
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
+        - name: logdir
+          mountPath: /datalog
+        - name: config
+          mountPath: /conf
+      volumes:
+      - name: datadir
+        hostPath:
+          path: /k8s-data/zoo/data
+      - name: logdir
+        hostPath:
+          path: /k8s-data/zoo/logs
+      - name: config
+        configMap:
+          name: zookeeper-config
