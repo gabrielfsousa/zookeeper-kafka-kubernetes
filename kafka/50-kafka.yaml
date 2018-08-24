@@ -59,10 +59,9 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: kafka
-        image: nexus.siege.red:5000/itsqd/alpine-kafka:1.0
+        image: your.registry.com:5000/alpine-kafka:1.0
         imagePullPolicy: Always
         env:
-        #node name used in docker entry script to configure outside listeners
         - name: MY_NODE_NAME
           valueFrom:
             fieldRef:
