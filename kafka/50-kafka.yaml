@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  serviceName: "kafka"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      affinity:
+        #make sure only one kafka pod runs per node 
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - kafka
+            topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-0
+                - node-1
+                - node-2 
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-0
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-1
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - node-2
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: kafka
+        image: nexus.siege.red:5000/itsqd/alpine-kafka:1.0
+        imagePullPolicy: Always
+        env:
+        #node name used in docker entry script to configure outside listeners
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: KAFKA_LOCAL_CONFIG 
+          value:
+            |
+            #broker.id=
+            listeners=PLAINTEXT://:9092,OUTSIDE://:9094
+            advertised.listeners=OUTSIDE://:9194,PLAINTEXT://:9092
+            zookeeper.connect=zoo:2181
+            zookeeper.connection.timeout.ms=6000
+            listener.security.protocol.map=PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+            inter.broker.listener.name=PLAINTEXT
+            auto.create.topics.enable=false
+        - name: KAFKA_OPTS
+          value: "-Dlogging.level=INFO -javaagent:/opt/jmx_prometheus_javaagent-0.3.1.jar=7071:/opt/kafka-jmx.yaml" 
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx4096M -Xms4096M"
+        ports:
+        - name: inside
+          containerPort: 9092
+          hostPort: 9192
+        - name: outside
+          containerPort: 9094
+          hostPort: 9194
+        - name: jmx
+          containerPort: 7071
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: datadir
+          mountPath: /tmp/kafka-logs
+      volumes:
+      - name: datadir
+        hostPath:
+          path: /k8s-data/kafka
+          type: Directory  
