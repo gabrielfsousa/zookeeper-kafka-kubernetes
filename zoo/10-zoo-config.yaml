@@ -1,0 +1,21 @@
+kind: ConfigMap
+metadata:
+  name: zookeeper-config
+apiVersion: v1
+data:
+  zoo.cfg: |-
+    tickTime=2000
+    clientPort=2181
+    initLimit=5
+    syncLimit=2
+    dataDir=/data
+    dataLogDir=/datalog
+    server.1=zoo-0.zoo.kafka.svc.cluster.local:2888:3888:participant 
+    server.2=zoo-1.zoo.kafka.svc.cluster.local:2888:3888:participant
+    server.3=zoo-2.zoo.kafka.svc.cluster.local:2888:3888:participant
+
+  log4j.properties: |-
+    log4j.rootLogger=INFO, stdout
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+    log4j.appender.stdout.layout.ConversionPattern=[%d] [myid:%X{myid}] %p %m (%c)%n
