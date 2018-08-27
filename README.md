@@ -64,11 +64,11 @@
 ```
 sed -i 's/:9194/'${MY_NODE_NAME}'.siege.red:9194/g' /opt/kafka/config/server.properties
 ```
+> server.properties exmaple on node-0
 ```
 broker.id=1
 listeners=PLAINTEXT://:9092,OUTSIDE://:9094
-#docker-entrypoint will add host nome on OUTSIDE listeners
-advertised.listeners=OUTSIDE://app249.siege.red:9194,PLAINTEXT://:9092
+advertised.listeners=OUTSIDE://node-0.outside.out:9194,PLAINTEXT://:9092
 zookeeper.connect=zoo:2181
 zookeeper.connection.timeout.ms=6000
 listener.security.protocol.map=PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
