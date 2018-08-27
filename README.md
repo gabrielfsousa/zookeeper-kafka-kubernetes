@@ -68,7 +68,7 @@ sed -i 's/:9194/'${MY_NODE_NAME}'.siege.red:9194/g' /opt/kafka/config/server.pro
 ```
 broker.id=1
 listeners=PLAINTEXT://:9092,OUTSIDE://:9094
-advertised.listeners=OUTSIDE://node-0.outside.out:9194,PLAINTEXT://:9092
+advertised.listeners=OUTSIDE://node-0.hostoutside.com:9194,PLAINTEXT://:9092
 zookeeper.connect=zoo:2181
 zookeeper.connection.timeout.ms=6000
 listener.security.protocol.map=PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
