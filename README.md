@@ -45,3 +45,4 @@
                 values:
                 - node-2
  ```
+* Outside -out of cluster- access
