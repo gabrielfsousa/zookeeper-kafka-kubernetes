@@ -45,6 +45,16 @@
                 values:
                 - node-2
  ```
+ ```yaml
+  #check if nodeaffinity rule were applied, if not,kafka container will not run
+      initContainers:
+      - name: init-kafka
+        image: busybox:1.29.1
+        command: ['sh', '-c', 'if [ -f "/tmp/kafka-logs/meta.properties" ]; then until grep "^broker.id=$((${HOSTNAME##*-} + 1))\$" /tmp/kafka-logs/meta.properties; do echo "im not on the right host, kill me"; sleep 2; done; else echo "init bootstrap"; fi']
+        volumeMounts:
+        - name: datadir
+          mountPath: /tmp/kafka-logs
+ ```
 * Outside -out of cluster- access
 ```yaml
   ports:
