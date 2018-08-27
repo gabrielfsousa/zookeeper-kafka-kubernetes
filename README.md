@@ -55,3 +55,6 @@
           containerPort: 9094
           hostPort: 9194
 ```
+```
+sed -i 's/:9194/'${MY_NODE_NAME}'.siege.red:9194/g' /opt/kafka/config/server.properties
+```
