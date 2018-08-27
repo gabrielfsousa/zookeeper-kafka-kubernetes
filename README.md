@@ -46,3 +46,12 @@
                 - node-2
  ```
 * Outside -out of cluster- access
+```yaml
+  ports:
+        - name: inside
+          containerPort: 9092
+          hostPort: 9192
+        - name: outside
+          containerPort: 9094
+          hostPort: 9194
+```
