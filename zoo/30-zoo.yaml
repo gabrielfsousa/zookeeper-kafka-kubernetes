@@ -15,7 +15,6 @@ spec:
       annotations:
     spec:
       affinity:
-        #see kafka yaml for explanation
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
