@@ -1,7 +1,7 @@
 # zookeeper / kafka for kubernetes
 
 * StatefulSet with nodeAffinity
-`
+```yaml
  affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -44,4 +44,4 @@
                 operator: In
                 values:
                 - node-2
-`
+ ```
